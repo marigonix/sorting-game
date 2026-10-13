@@ -86,14 +86,14 @@
         let gameConfig = { shelves: [], books: [] };
 
         window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
+            cconst urlParams = new URLSearchParams(window.location.search);
             const gameDataParam = urlParams.get('game');
 
             if (gameDataParam) {
                 document.getElementById('creator-dashboard').style.display = 'none';
                 document.getElementById('game-wrapper').style.display = 'flex';
                 try {
-                    const binaryString = atob(decodeURIComponent(gameDataParam));
+                    const binaryString = atob(gameDataParam);
                     const bytes = new Uint8Array(binaryString.length);
                     for (let i = 0; i < binaryString.length; i++) {
                         bytes[i] = binaryString.charCodeAt(i);
@@ -103,6 +103,7 @@
                     document.getElementById('data-input').value = decodedData;
                     parseCustomText(decodedData);
                 } catch(e) {
+                    console.error("Link parsing error:", e);
                     alert("Oops! This game link looks broken or corrupted.");
                     document.getElementById('creator-dashboard').style.display = 'block';
                     document.getElementById('game-wrapper').style.display = 'none';
