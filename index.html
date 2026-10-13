@@ -86,14 +86,16 @@
         let gameConfig = { shelves: [], books: [] };
 
         window.onload = function() {
-            cconst urlParams = new URLSearchParams(window.location.search);
-            const gameDataParam = urlParams.get('game');
+            let gameDataParam = "";
+            if (window.location.hash.startsWith('#game=')) {
+                gameDataParam = window.location.hash.split('#game=')[1];
+            }
 
             if (gameDataParam) {
                 document.getElementById('creator-dashboard').style.display = 'none';
                 document.getElementById('game-wrapper').style.display = 'flex';
                 try {
-                    const binaryString = atob(gameDataParam);
+                    const binaryString = atob(decodeURIComponent(gameDataParam));
                     const bytes = new Uint8Array(binaryString.length);
                     for (let i = 0; i < binaryString.length; i++) {
                         bytes[i] = binaryString.charCodeAt(i);
@@ -103,7 +105,7 @@
                     document.getElementById('data-input').value = decodedData;
                     parseCustomText(decodedData);
                 } catch(e) {
-                    console.error("Link parsing error:", e);
+                    console.error(e);
                     alert("Oops! This game link looks broken or corrupted.");
                     document.getElementById('creator-dashboard').style.display = 'block';
                     document.getElementById('game-wrapper').style.display = 'none';
@@ -165,7 +167,7 @@
             }
             const compressed = btoa(binaryString);
             
-            const longShareableUrl = window.location.origin + window.location.pathname + "?game=" + encodeURIComponent(compressed);
+            const longShareableUrl = window.location.origin + window.location.pathname + "#game=" + encodeURIComponent(compressed);
             
             const outputField = document.getElementById('link-output');
             const copyButton = document.getElementById('copy-btn');
