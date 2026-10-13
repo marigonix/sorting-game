@@ -86,8 +86,10 @@
         let gameConfig = { shelves: [], books: [] };
 
         window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            let gameDataParam = urlParams.get('game');
+            let gameDataParam = "";
+            if (window.location.hash && window.location.hash.startsWith('#game=')) {
+                gameDataParam = window.location.hash.substring(6);
+            }
 
             if (gameDataParam) {
                 document.getElementById('creator-dashboard').style.display = 'none';
@@ -97,17 +99,19 @@
                     while (base64String.length % 4 !== 0) {
                         base64String += '=';
                     }
+            
                     const binaryString = atob(base64String);
                     const bytes = new Uint8Array(binaryString.length);
                     for (let i = 0; i < binaryString.length; i++) {
                         bytes[i] = binaryString.charCodeAt(i);
                     }
+            
                     const decodedData = new TextDecoder("utf-8").decode(bytes);
             
                     document.getElementById('data-input').value = decodedData;
                     parseCustomText(decodedData);
                 } catch(e) {
-                    console.error("Decoder encountered a critical mismatch error:", e);
+                    console.error("Decoder encountered a validation issue:", e);
                     alert("Oops! This game link looks broken or corrupted.");
                     document.getElementById('creator-dashboard').style.display = 'block';
                     document.getElementById('game-wrapper').style.display = 'none';
