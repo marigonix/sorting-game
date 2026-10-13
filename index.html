@@ -161,21 +161,20 @@
 
         async function generateGameLink() {
             const inputText = document.getElementById('data-input').value;
-            
+            const outputField = document.getElementById('link-output');
+            const copyButton = document.getElementById('copy-btn');
+    
+            outputField.value = "Shortening link... Please wait...";
+            copyButton.disabled = true;
+
             const bytes = new TextEncoder().encode(inputText);
             let binaryString = "";
-            for (let i = 0; i < bytes.byteLength; i++) {
+            for (let i = 0; i < bytes.length; i++) {
                 binaryString += String.fromCharCode(bytes[i]);
             }
             const compressed = btoa(binaryString);
-            
+    
             const longShareableUrl = window.location.origin + window.location.pathname + "#game=" + encodeURIComponent(compressed);
-            
-            const outputField = document.getElementById('link-output');
-            const copyButton = document.getElementById('copy-btn');
-            
-            outputField.value = "Shortening link... Please wait...";
-            copyButton.disabled = true;
 
             if (window.location.protocol === 'file:') {
                 outputField.value = longShareableUrl;
@@ -183,35 +182,36 @@
                 copyButton.style.backgroundColor = "#2a9d8f";
                 document.getElementById('game-wrapper').style.display = 'flex';
                 parseCustomText(inputText);
-                alert("Success! Generated local link. (Note: Short URLs require your files to be hosted online, fallback long link generated instead!)");
+                alert("Success! Generated local link.");
                 return;
             }
 
             try {
-                const response = await fetch(`https://corsproxy.io{encodeURIComponent('https://is.gd/create.php?format=simple&url=${encodeURIComponent(longShareableUrl)}`)}');
-                
+                const targetApi = "https://is.gd" + encodeURIComponent(longShareableUrl);
+                const response = await fetch("https://corsproxy.io?" + encodeURIComponent(targetApi));
+        
                 if (response.ok) {
                     const shortUrl = await response.text();
-                    
+            
                     outputField.value = shortUrl;
                     copyButton.disabled = false;
                     copyButton.style.backgroundColor = "#2a9d8f";
                     copyButton.innerText = "Copy Link";
-                    
+            
                     navigator.clipboard.writeText(shortUrl);
                     alert("Success! A beautiful, short link has been copied to your clipboard!");
                 } else {
                     throw new Error("Shortener server responded with an error status.");
                 }
             } catch (error) {
-                console.warn("Shortener failed or was blocked by adblocker, falling back to full length link.", error);
+                console.warn("Shortener network blocked, falling back to full length link.", error);
                 outputField.value = longShareableUrl;
                 copyButton.disabled = false;
                 copyButton.style.backgroundColor = "#2a9d8f";
                 navigator.clipboard.writeText(longShareableUrl);
                 alert("Link created! (The shortener network was unreachable, full length link copied instead).");
             }
-            
+    
             document.getElementById('game-wrapper').style.display = 'flex';
             parseCustomText(inputText);
         }
