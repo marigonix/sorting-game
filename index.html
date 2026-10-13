@@ -170,14 +170,10 @@
     
             outputField.value = "Shortening link... Please wait...";
             copyButton.disabled = true;
-
             const bytes = new TextEncoder().encode(inputText);
-            let binaryString = "";
-            for (let i = 0; i < bytes.length; i++) {
-                binaryString += String.fromCharCode(bytes[i]);
-            }
-            const compressed = btoa(binaryString);
+            const binaryString = String.fromCharCode.apply(null, bytes);
     
+            const compressed = btoa(binaryString);
             const longShareableUrl = window.location.origin + window.location.pathname + "#game=" + encodeURIComponent(compressed);
 
             if (window.location.protocol === 'file:') {
