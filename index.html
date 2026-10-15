@@ -129,59 +129,41 @@
                     return;
                 }
 
-                const callbackName = 'isgd_callback_' + Math.floor(Math.random() * 100000);
+                const apiUrl = `https://tinyurl.com{encodeURIComponent(longShareableUrl)}`;
         
-                window[callbackName] = function(data) {
-                    if (data && data.shorturl) {
-                        outputField.value = data.shorturl;
-                        copyButton.disabled = false;
-                        copyButton.style.backgroundColor = "#2a9d8f";
-                        copyButton.innerText = "Copy Link";
-                        navigator.clipboard.writeText(data.shorturl);
-                        alert("Success! A beautiful, short link has been copied to your clipboard!");
-                    } else {
-                        console.warn("is.gd API Error:", data.errordescription || "Unknown error");
-                        triggerCompressedFallback(longShareableUrl);
-                    }
-                    cleanup();
-                };
-
-                const scriptElement = document.createElement('script');
-                scriptElement.id = 'isgd-jsonp-script';
-                scriptElement.onerror = function() {
-                    console.warn("Shortener script execution blocked. Triggering fallback.");
-                    triggerCompressedFallback(longShareableUrl);
-                    cleanup();
-                };
-
-                function cleanup() {
-                    const el = document.getElementById('isgd-jsonp-script');
-                    if (el) el.remove();
-                    delete window[callbackName];
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+        
+                if (response.ok) {
+                    const shortUrl = await response.text();
+            
+                    outputField.value = shortUrl.trim();
+                    copyButton.disabled = false;
+                    copyButton.style.backgroundColor = "#2a9d8f";
+                    copyButton.innerText = "Copy Link";
+            
+                    navigator.clipboard.writeText(shortUrl.trim());
+                    alert("Success! A beautiful, short TinyURL link has been copied to your clipboard!");
+                } else {
+                    throw new Error("TinyURL service rejected the structure format.");
                 }
 
-                scriptElement.src = `https://is.gd{callbackName}&url=${encodeURIComponent(longShareableUrl)}`;
-                document.body.appendChild(scriptElement);
-
             } catch (error) {
-                console.warn("Structural logic failed, pulling raw compressed string.", error);
+                console.warn("TinyURL request failed or was blocked. Reverting to fallback.", error);
                 const compressedData = await compressString(inputText);
-                triggerCompressedFallback(window.location.origin + window.location.pathname + "?g=" + compressedData);
+                const fallbackUrl = window.location.origin + window.location.pathname + "?g=" + compressedData;
+        
+                outputField.value = fallbackUrl;
+                copyButton.disabled = false;
+                copyButton.style.backgroundColor = "#2a9d8f";
+                navigator.clipboard.writeText(fallbackUrl);
+                alert("Link created! The shortening network was blocked by your browser settings, full length compressed link copied instead.");
             }
     
             document.getElementById('game-wrapper').style.display = 'flex';
             parseCustomText(inputText);
-        }
-
-        function triggerCompressedFallback(fallbackUrl) {
-            const outputField = document.getElementById('link-output');
-            const copyButton = document.getElementById('copy-btn');
-    
-            outputField.value = fallbackUrl;
-            copyButton.disabled = false;
-            copyButton.style.backgroundColor = "#2a9d8f";
-            navigator.clipboard.writeText(fallbackUrl);
-            alert("Link created! The API was unreachable or blocked, so your compressed fallback link was copied instead.");
         }
         
 
