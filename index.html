@@ -128,22 +128,24 @@
                     alert("Success! Generated local compressed link.");
                     return;
                 }
-
-                const response = await fetch(`https://is.gd{encodeURIComponent(longShareableUrl)}`);
+                const apiUrl = `https://is.gd{encodeURIComponent(longShareableUrl)}`;
+        
+                const response = await fetch(apiUrl);
         
                 if (response.ok) {
                     const shortUrl = await response.text();
-                    outputField.value = shortUrl;
+                    outputField.value = shortUrl.trim();
                     copyButton.disabled = false;
                     copyButton.style.backgroundColor = "#2a9d8f";
                     copyButton.innerText = "Copy Link";
-                    navigator.clipboard.writeText(shortUrl);
+                    navigator.clipboard.writeText(shortUrl.trim());
                     alert("Success! A beautiful, short link has been copied to your clipboard!");
                 } else {
-                    throw new Error("Shortener server error");
+                    throw new Error("Shortener server rejected the payload format.");
                 }
             } catch (error) {
-                console.warn("Shortener failed, falling back to full length compressed link.", error);
+                console.warn("Shortener API blocked or unreachable. Using fallback compressed link.", error);
+        
                 const compressedData = await compressString(inputText);
                 const longShareableUrl = window.location.origin + window.location.pathname + "?g=" + compressedData;
         
@@ -151,12 +153,13 @@
                 copyButton.disabled = false;
                 copyButton.style.backgroundColor = "#2a9d8f";
                 navigator.clipboard.writeText(longShareableUrl);
-                alert("Link created! (Using fallback compressed URL structure).");
+                alert("Link created! The shortening service was blocked or unreachable, so your compressed fallback link was copied instead.");
             }
     
             document.getElementById('game-wrapper').style.display = 'flex';
             parseCustomText(inputText);
         }
+
 
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
