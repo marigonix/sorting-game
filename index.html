@@ -280,47 +280,30 @@
 
             if (targetZone.id !== 'book-pile') {
                 const parentShelf = targetZone.closest('.shelf');
-                const zoneRect = targetZone.getBoundingClientRect();
-                const books = targetZone.querySelectorAll('.book');
-                
-                if (books.length > 0) {
-                    const lastBook = books[books.length - 1];
-                    const lastBookRect = lastBook.getBoundingClientRect();
-                    const spaceLeftOnRight = zoneRect.right - lastBookRect.right;
+                const booksInThisRow = targetZone.querySelectorAll('.book').length;
+                if (booksInThisRow >= 5 && !parentShelf.hasAttribute('data-has-extended')) {
+                    parentShelf.setAttribute('data-has-extended', 'true');
                     
-                    if (spaceLeftOnRight < 90 && !parentShelf.hasAttribute('data-has-extended')) {
-                        parentShelf.setAttribute('data-has-extended', 'true');
-                        
-                        const extensionShelf = document.createElement('div'); 
-                        extensionShelf.className = 'shelf extension-shelf';
-                        
-                        const shelfInterior = document.createElement('div'); 
-                        shelfInterior.className = 'shelf-interior';
-                        
-                        const newDropZone = document.createElement('div'); 
-                        newDropZone.className = 'drop-zone';
-                        newDropZone.id = targetZone.id;
-                        newDropZone.setAttribute('ondragover', 'allowDrop(event)');
-                        newDropZone.setAttribute('ondrop', 'dropElement(event)');
-                        
-                        newDropZone.style.display = "flex";
-                        newDropZone.style.flexDirection = "row";
-                        newDropZone.style.flexWrap = "nowrap";
-                        newDropZone.style.justifyContent = "flex-start";
-                        newDropZone.style.alignItems = "flex-end";
-                        newDropZone.style.gap = "10px";
-                        newDropZone.style.width = "100%";
-                        newDropZone.style.height = "100%";
-                        newDropZone.style.paddingLeft = "20px";
-                        
-                        shelfInterior.appendChild(newDropZone);
-                        const shelfWood = document.createElement('div'); 
-                        shelfWood.className = 'shelf-wood';
-                        
-                        extensionShelf.appendChild(shelfInterior); 
-                        extensionShelf.appendChild(shelfWood);
-                        
-                        parentShelf.insertAdjacentElement('afterend', extensionShelf);                    
+                    const extensionShelf = document.createElement('div'); 
+                    extensionShelf.className = 'shelf extension-shelf';
+                    
+                    const shelfInterior = document.createElement('div'); 
+                    shelfInterior.className = 'shelf-interior';
+                    
+                    const newDropZone = document.createElement('div'); 
+                    newDropZone.className = 'drop-zone';
+                    newDropZone.id = targetZone.id; 
+                    newDropZone.setAttribute('ondragover', 'allowDrop(event)');
+                    newDropZone.setAttribute('ondrop', 'dropElement(event)');
+                    
+                    shelfInterior.appendChild(newDropZone);
+                    const shelfWood = document.createElement('div'); 
+                    shelfWood.className = 'shelf-wood';
+                    
+                    extensionShelf.appendChild(shelfInterior); 
+                    extensionShelf.appendChild(shelfWood);
+                    
+                    parentShelf.insertAdjacentElement('afterend', extensionShelf);               
                 }
             }
         }
