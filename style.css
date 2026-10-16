@@ -64,9 +64,9 @@ p {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    justify-content: flex-start !important;
     align-items: flex-end !important;
-    box-sizing: border-box !important;
+    justify-content: flex-start !important;
+    gap: 15px !important;
 }
 
 .shelf-end-marker {
@@ -239,8 +239,6 @@ button:active { transform: scale(0.96); }
 }
 .btn-reset:hover { background: linear-gradient(180deg, #f0e5d5 0%, #cfc1ae 100%); }
 
-
-/* MOBILE AND SMALL SCREEN OPTIMIZATIONS (ADDED)*/
 
 @media screen and (max-width: 600px) {
 
