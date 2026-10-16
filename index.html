@@ -215,22 +215,28 @@
         }
 
         function calculateMaxBooksPerRow(dropZoneElement) {
-            if (!dropZoneElement) return 4;
-            const availableShelfWidth = dropZoneElement.clientWidth;
+            const bookcaseElement = document.getElementById('bookcase');
+            const totalCabinetWidth = bookcaseElement ? bookcaseElement.clientWidth : 600;
             const isMobile = window.matchMedia("(max-width: 600px)").matches;
             
-            let bookWidth, layoutGap;
+            let bookWidth, layoutGap, wallBuffer;
             if (isMobile) {
                 bookWidth = 70;
                 layoutGap = 10;
+                wallBuffer = 30;
             } else {
                 bookWidth = 90;
                 layoutGap = 15;
-            }
-            const bookFootprint = bookWidth + layoutGap;
-            const usableWidth = availableShelfWidth - 20;
-            const calculatedMax = Math.floor(usableWidth / bookFootprint);
-            return calculatedMax > 2 ? calculatedMax : 2;
+                wallBuffer = 40;
+    }
+    
+    const individualBookFootprint = bookWidth + layoutGap;
+    const trueUsableSpace = totalCabinetWidth - wallBuffer;
+    
+    // 3. Find the exact mathematical total that can physically fit inside the shelf framing width
+    const calculatedMax = Math.floor(trueUsableSpace / individualBookFootprint);
+    
+    return calculatedMax > 2 ? calculatedMax : 4;
         }
 
         function initGame() {
@@ -324,9 +330,6 @@
                     shelfWood.className = 'shelf-wood';
                     extensionShelf.appendChild(shelfInterior); 
                     extensionShelf.appendChild(shelfWood);
-
-                    const duplicatePlaque = extensionShelf.querySelector('.plaque');
-                    if (duplicatePlaque) duplicatePlaque.style.display = 'none';
                     
                     activeRowBlock.insertAdjacentElement('afterend', extensionShelf);
                 }
