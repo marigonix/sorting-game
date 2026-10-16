@@ -87,6 +87,10 @@ p {
     justify-content: flex-start !important;
 }
 
+.extension-shelf .drop-zone {
+    padding-left: 20px !important;
+}
+
 .extension-shelf .shelf-interior {
     padding-left: 0px !important;
 }
