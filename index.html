@@ -214,6 +214,25 @@
             initGame();
         }
 
+        function calculateMaxBooksPerRow(dropZoneElement) {
+            if (!dropZoneElement) return 4;
+            const availableShelfWidth = dropZoneElement.clientWidth;
+            const isMobile = window.matchMedia("(max-width: 600px)").matches;
+            
+            let bookWidth, layoutGap;
+            if (isMobile) {
+                bookWidth = 70;
+                layoutGap = 10;
+            } else {
+                bookWidth = 90;
+                layoutGap = 15;
+            }
+            const bookFootprint = bookWidth + layoutGap;
+            const usableWidth = availableShelfWidth - 20;
+            const calculatedMax = Math.floor(usableWidth / bookFootprint);
+            return calculatedMax > 2 ? calculatedMax : 2;
+        }
+
         function initGame() {
             document.querySelectorAll('.extension-shelf').forEach(el => el.remove());
             const bookcase = document.getElementById('bookcase');
@@ -231,10 +250,6 @@
                 dropZone.id = shelfData.id;
                 dropZone.setAttribute('ondragover', 'allowDrop(event)');
                 dropZone.setAttribute('ondrop', 'dropElement(event)');
-        
-                const endMarker = document.createElement('div');
-                endMarker.className = 'shelf-end-marker';
-                dropZone.appendChild(endMarker);
         
                 shelfInterior.appendChild(plaqueDiv); 
                 shelfInterior.appendChild(dropZone);
@@ -284,32 +299,36 @@
             draggedBook.classList.remove('correct', 'incorrect');
         
             if (targetZone.id !== 'book-pile') {
-                const MAX_BOOKS_PER_ROW = 4; 
+                const activeRowBlock = targetZone.closest('.shelf');
                 const currentBookCount = targetZone.children.length;
-                const parentShelf = targetZone.closest('.shelf');
+                const computedMaxBooks = calculateMaxBooksPerRow(targetZone);
         
-                if (currentBookCount >= MAX_BOOKS_PER_ROW && !parentShelf.hasAttribute('data-has-extended')) {
-                    parentShelf.setAttribute('data-has-extended', 'true');
+                if (currentBookCount >= computedMaxBooks && !activeRowBlock.hasAttribute('data-has-extended')) {
+                    activeRowBlock.setAttribute('data-has-extended', 'true');
+                    
                     const extensionShelf = document.createElement('div'); 
                     extensionShelf.className = 'shelf extension-shelf';
-            
+                    
                     const shelfInterior = document.createElement('div'); 
                     shelfInterior.className = 'shelf-interior';
                     shelfInterior.style.boxShadow = "inset 0 -15px 20px rgba(0,0,0,0.6)";
-            
+                    
                     const newDropZone = document.createElement('div'); 
                     newDropZone.className = 'drop-zone';
                     newDropZone.id = targetZone.id;
                     newDropZone.setAttribute('ondragover', 'allowDrop(event)');
                     newDropZone.setAttribute('ondrop', 'dropElement(event)');
-                    newDropZone.style.paddingLeft = "20px"; 
-            
+                    
                     shelfInterior.appendChild(newDropZone);
                     const shelfWood = document.createElement('div'); 
                     shelfWood.className = 'shelf-wood';
                     extensionShelf.appendChild(shelfInterior); 
                     extensionShelf.appendChild(shelfWood);
-                    parentShelf.insertAdjacentElement('afterend', extensionShelf);
+
+                    const duplicatePlaque = extensionShelf.querySelector('.plaque');
+                    if (duplicatePlaque) duplicatePlaque.style.display = 'none';
+                    
+                    activeRowBlock.insertAdjacentElement('afterend', extensionShelf);
                 }
             }
         }
