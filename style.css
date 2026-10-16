@@ -65,10 +65,21 @@ p {
     flex-wrap: nowrap !important;
     align-items: flex-end !important;
     justify-content: flex-start !important;
-    gap: 10px;
-    height: 100%;
-    width: 100%;
-    box-sizing: border-box;
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.shelf-end-marker {
+    width: 1px;
+    height: 1px;
+    flex-shrink: 0;
+    margin-left: auto;
+    visibility: hidden;
+}
+
+.extension-shelf .plaque {
+    display: none !important;
 }
 
 .extension-shelf .shelf-interior .drop-zone {
