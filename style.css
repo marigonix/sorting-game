@@ -65,22 +65,20 @@ p {
     flex-wrap: nowrap !important;
     align-items: flex-end !important;
     justify-content: flex-start !important;
-    gap: 10px !important;
-    width: 100% !important;
-    height: 100% !important;
-    box-sizing: border-box !important;
+    gap: 10px;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .extension-shelf .shelf-interior .drop-zone {
     padding-left: 0px !important;
     margin-left: 0px !important;
     justify-content: flex-start !important;
-    padding-left: 20px !important; 
 }
 
 .extension-shelf .shelf-interior {
-    padding-left: 20px !important;
-    margin-left: 0px !important;
+    padding-left: 0px !important;
 }
 
 .shelf-wood {
