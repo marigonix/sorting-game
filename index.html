@@ -85,254 +85,95 @@
     <script>
         let gameConfig = { shelves: [], books: [] };
 
-        async function compressString(str) {
-            const stream = new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'));
-            const response = new Response(stream);
-            const buffer = await response.arrayBuffer();
-            return btoa(String.fromCharCode(...new Uint8Array(buffer)))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+\$/, '');
-        }
-        async function decompressString(base64) {
-            let sign = base64.replace(/-/g, '+').replace(/_/g, '/');
-            while (sign.length % 4) sign += '=';
-            const binary = atob(sign);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    
-            const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-            const response = new Response(stream);
-            return await response.text();
+        const SUPABASE_URL = "https://qqspuhrasyuukxuyllgs.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_eNi1JBEG51GMuHCjKuGiYw_t5Q_1bc8";
+
+        window.onload = async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameId = urlParams.get('id'); 
+
+            if (gameId) {
+                document.getElementById('creator-dashboard').style.display = 'none';
+                document.getElementById('game-wrapper').style.display = 'flex';
+        
+                try {
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/games?id=eq.${gameId}`, {
+                        headers: {
+                            "apikey": SUPABASE_ANON_KEY,
+                            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+                        }
+                    });
+                    const data = await response.json();
+            
+                    if (data && data.length > 0) {
+                        const gameData = data[0].config_text;
+                        document.getElementById('data-input').value = gameData;
+                        parseCustomText(gameData);
+                    } else {
+                        throw new Error("Game not found");
+                    }
+                } catch(e) {
+                    alert("Oops! Could not load this game configuration.");
+                    showDashboard();
+                }
+            } else {
+                showDashboard();
+            }
+        };
+
+        function showDashboard() {
+            document.getElementById('creator-dashboard').style.display = 'block';
+            document.getElementById('game-wrapper').style.display = 'none';
         }
 
         async function generateGameLink() {
-            const inputText = document.getElementById('data-input').value;
-    
+            const inputText = document.getElementById('data-input').value.trim();
             const outputField = document.getElementById('link-output');
             const copyButton = document.getElementById('copy-btn');
     
-            outputField.value = "Shortening link... Please wait...";
+            if (!inputText) return alert("Please enter some game configuration data first!");
+    
+            outputField.value = "Saving game to cloud database...";
             copyButton.disabled = true;
 
             try {
-                const compressedData = await compressString(inputText);
-                const longShareableUrl = window.location.origin + window.location.pathname + "?g=" + compressedData;
-
-                if (window.location.protocol === 'file:') {
-                    outputField.value = longShareableUrl;
-                    copyButton.disabled = false;
-                    copyButton.style.backgroundColor = "#2a9d8f";
-                    document.getElementById('game-wrapper').style.display = 'flex';
-                    parseCustomText(inputText);
-                    alert("Success! Generated local compressed link.");
-                    return;
-                }
-
-                const apiUrl = `https://tinyurl.com{encodeURIComponent(longShareableUrl)}`;
-        
-                const response = await fetch(apiUrl, {
-                    method: 'GET',
-                    mode: 'cors'
+                const uniqueId = Math.random().toString(36).substring(2, 10);
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/games`, {
+                    method: 'POST',
+                    headers: {
+                        "apikey": SUPABASE_ANON_KEY,
+                        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                        "Content-Type": "application/json",
+                        "Prefer": "return=minimal"
+                    },
+                    body: JSON.stringify({
+                        id: uniqueId,
+                        config_text: inputText
+                    })
                 });
-        
+
                 if (response.ok) {
-                    const shortUrl = await response.text();
+                    const shareableUrl = `${window.location.origin}${window.location.pathname}?id=${uniqueId}`;
             
-                    outputField.value = shortUrl.trim();
+                    outputField.value = shareableUrl;
                     copyButton.disabled = false;
                     copyButton.style.backgroundColor = "#2a9d8f";
                     copyButton.innerText = "Copy Link";
             
-                    navigator.clipboard.writeText(shortUrl.trim());
-                    alert("Success! A beautiful, short TinyURL link has been copied to your clipboard!");
+                    navigator.clipboard.writeText(shareableUrl);
+                    alert("Success! Game saved to cloud database and short link copied!");
                 } else {
-                    throw new Error("TinyURL service rejected the structure format.");
+                    throw new Error("Database insertion rejected.");
                 }
-
             } catch (error) {
-                console.warn("TinyURL request failed or was blocked. Reverting to fallback.", error);
-                const compressedData = await compressString(inputText);
-                const fallbackUrl = window.location.origin + window.location.pathname + "?g=" + compressedData;
-        
-                outputField.value = fallbackUrl;
-                copyButton.disabled = false;
-                copyButton.style.backgroundColor = "#2a9d8f";
-                navigator.clipboard.writeText(fallbackUrl);
-                alert("Link created! The shortening network was blocked by your browser settings, full length compressed link copied instead.");
+                console.error(error);
+                outputField.value = "Error saving to cloud.";
+                alert("Could not connect to the cloud database storage.");
             }
     
             document.getElementById('game-wrapper').style.display = 'flex';
             parseCustomText(inputText);
         }
-        
-
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const gameDataParam = urlParams.get('g') || urlParams.get('game'); 
-
-            if (gameDataParam) {
-                document.getElementById('creator-dashboard').style.display = 'none';
-                document.getElementById('game-wrapper').style.display = 'flex';
-        
-                const isCompressed = urlParams.has('g');
-        
-                if(isCompressed) {
-                    decompressString(gameDataParam).then(decodedData => {
-                        document.getElementById('data-input').value = decodedData;
-                        parseCustomText(decodedData);
-                    }).catch(e => {
-                        handleCorruptedLink();
-                    });
-                } else {
-                    try {
-                        const binaryString = atob(decodeURIComponent(gameDataParam));
-                        const bytes = new Uint8Array(binaryString.length);
-                        for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-                        const decodedData = new TextDecoder().decode(bytes);
-                        document.getElementById('data-input').value = decodedData;
-                        parseCustomText(decodedData);
-                    } catch(e) {
-                        handleCorruptedLink();
-                    }
-                }
-            } else {
-                document.getElementById('creator-dashboard').style.display = 'block';
-                document.getElementById('game-wrapper').style.display = 'none';
-            }
-        };
-
-        function handleCorruptedLink() {
-            alert("Oops! This game link looks broken or corrupted.");
-            document.getElementById('creator-dashboard').style.display = 'block';
-            document.getElementById('game-wrapper').style.display = 'none';
-        }
-
-                function parseCustomText(text) {
-            const lines = text.split('\n');
-            let currentSection = "";
-            let newShelves = [];
-            let newBooks = [];
-            let bookCount = 1;
-
-            lines.forEach(line => {
-                line = line.trim();
-                if (!line || line.startsWith('//')) return;
-
-                if (line.toUpperCase() === "[SHELVES]") { currentSection = "shelves"; return; }
-                if (line.toUpperCase() === "[BOOKS]") { currentSection = "books"; return; }
-
-                if (currentSection === "shelves") {
-                    const parts = line.split(':');
-                    if (parts.length >= 2) {
-                        newShelves.push({ id: parts[0].trim(), title: parts[1].trim() });
-                    }
-                } else if (currentSection === "books") {
-                    const parts = line.split('|');
-                    if (parts.length >= 2) {
-                        const imageUrl = parts[3] ? parts[3].trim() : "";
-                        newBooks.push({
-                            id: "b" + bookCount++,
-                            text: parts[0].trim(),
-                            shelf: parts[1].trim(),
-                            color: parts[2] ? parts[2].trim() : "#5c341d",
-                            image: imageUrl
-                        });
-                    }
-                }
-            });
-
-            gameConfig.shelves = newShelves;
-            gameConfig.books = newBooks;
-            initGame();
-        }
-
-        function copyGeneratedLink() {
-            const outputField = document.getElementById('link-output');
-            
-            outputField.select();
-            outputField.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(outputField.value);
-            
-            const copyButton = document.getElementById('copy-btn');
-            copyButton.innerText = "✓ Copied!";
-            copyButton.style.backgroundColor = "#38b000";
-            
-            setTimeout(() => {
-                copyButton.innerText = "Copy Link";
-                copyButton.style.backgroundColor = "#2a9d8f";
-            }, 2000);
-        }
-
-        function initGame() {
-            const bookcase = document.getElementById('bookcase');
-            const bookPile = document.getElementById('book-pile');
-            bookcase.innerHTML = ""; bookPile.innerHTML = "";
-
-            gameConfig.shelves.forEach(shelfData => {
-                const shelfContainer = document.createElement('div'); shelfContainer.className = 'shelf';
-                const shelfInterior = document.createElement('div'); shelfInterior.className = 'shelf-interior';
-                
-                const plaqueDiv = document.createElement('div'); plaqueDiv.className = 'plaque';
-                plaqueDiv.innerText = shelfData.title;
-
-                const dropZone = document.createElement('div'); dropZone.className = 'drop-zone';
-                dropZone.id = shelfData.id;
-                dropZone.setAttribute('ondragover', 'allowDrop(event)');
-                dropZone.setAttribute('ondrop', 'dropElement(event)');
-
-                shelfInterior.appendChild(plaqueDiv); shelfInterior.appendChild(dropZone);
-                
-                const shelfWood = document.createElement('div'); shelfWood.className = 'shelf-wood';
-
-                shelfContainer.appendChild(shelfInterior); shelfContainer.appendChild(shelfWood);
-                bookcase.appendChild(shelfContainer);
-            });
-
-                        const shuffledBooks = [...gameConfig.books].sort(() => Math.random() - 0.5);
-            shuffledBooks.forEach(bookData => {
-                const bookDiv = document.createElement('div'); bookDiv.className = 'book';
-                bookDiv.id = bookData.id; 
-                bookDiv.innerText = bookData.text; 
-                bookDiv.setAttribute('draggable', 'true');
-                bookDiv.setAttribute('data-correct-shelf', bookData.shelf);
-                bookDiv.setAttribute('ondragstart', 'dragElement(event)');
-                
-                if (bookData.image) {
-                    bookDiv.style.backgroundImage = "url('" + bookData.image + "')";
-                } else {
-                    bookDiv.style.backgroundColor = bookData.color;
-                    bookDiv.style.color = "#fff1cc";
-                    bookDiv.style.writingMode = "vertical-rl";
-                    bookDiv.style.textTransform = "uppercase";
-                }
-                
-                bookPile.appendChild(bookDiv);
-            });
-        }
-
-        function allowDrop(ev) { ev.preventDefault(); }
-        function dragElement(ev) { ev.dataTransfer.setData("text", ev.target.id); ev.target.classList.remove('correct', 'incorrect'); }
-        
-        function dropElement(ev) {
-            ev.preventDefault(); const data = ev.dataTransfer.getData("text"); const draggedBook = document.getElementById(data);
-            let targetZone = ev.target;
-            if (!targetZone.classList.contains('drop-zone') && targetZone.id !== 'book-pile') {
-                targetZone = targetZone.closest('.drop-zone') || document.getElementById('book-pile');
-            }
-            targetZone.appendChild(draggedBook); draggedBook.classList.remove('correct', 'incorrect');
-        }
-
-        function checkAnswers() {
-            document.querySelectorAll('.book').forEach(book => {
-                const currentShelf = book.parentElement.id; const correctShelf = book.getAttribute('data-correct-shelf');
-                if(book.parentElement.id === 'book-pile') { book.classList.remove('correct', 'incorrect'); return; }
-                if (currentShelf === correctShelf) { book.classList.add('correct'); book.classList.remove('incorrect'); }
-                else { book.classList.add('incorrect'); book.classList.remove('correct'); }
-            });
-        }
-        
-        function resetGame() { initGame(); }
     </script>
     <script src="server.js"></script> 
 </body>
