@@ -270,18 +270,22 @@
             const data = ev.dataTransfer.getData("text"); 
             const draggedBook = document.getElementById(data);
             let targetZone = ev.target;
-    
+            
             if (!targetZone.classList.contains('drop-zone') && targetZone.id !== 'book-pile') {
                 targetZone = targetZone.closest('.drop-zone') || document.getElementById('book-pile');
             }
-    
+            
             targetZone.appendChild(draggedBook); 
             draggedBook.classList.remove('correct', 'incorrect');
-
+        
             if (targetZone.id !== 'book-pile') {
                 const parentShelf = targetZone.closest('.shelf');
-                const booksInThisRow = targetZone.querySelectorAll('.book').length;
-                if (booksInThisRow >= 5 && !parentShelf.hasAttribute('data-has-extended')) {
+                const totalShelfWidth = targetZone.clientWidth;
+                const bookCountInThisRow = targetZone.children.length;
+                const totalBookSpaceUsed = bookCountInThisRow * 90;
+                const plaqueBufferSpace = targetZone.closest('.extension-shelf') ? 0 : 140;
+        
+                if (totalBookSpaceUsed >= (totalShelfWidth - plaqueBufferSpace - 95) && !parentShelf.hasAttribute('data-has-extended')) {
                     parentShelf.setAttribute('data-has-extended', 'true');
                     
                     const extensionShelf = document.createElement('div'); 
@@ -292,7 +296,7 @@
                     
                     const newDropZone = document.createElement('div'); 
                     newDropZone.className = 'drop-zone';
-                    newDropZone.id = targetZone.id; 
+                    newDropZone.id = targetZone.id;
                     newDropZone.setAttribute('ondragover', 'allowDrop(event)');
                     newDropZone.setAttribute('ondrop', 'dropElement(event)');
                     
@@ -303,7 +307,7 @@
                     extensionShelf.appendChild(shelfInterior); 
                     extensionShelf.appendChild(shelfWood);
                     
-                    parentShelf.insertAdjacentElement('afterend', extensionShelf);               
+                    parentShelf.insertAdjacentElement('afterend', extensionShelf);           
                 }
             }
         }
