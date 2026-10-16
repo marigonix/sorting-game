@@ -181,14 +181,14 @@
             let newShelves = [];
             let newBooks = [];
             let bookCount = 1;
-
+        
             lines.forEach(line => {
                 line = line.trim();
                 if (!line || line.startsWith('//')) return;
-
+        
                 if (line.toUpperCase() === "[SHELVES]") { currentSection = "shelves"; return; }
                 if (line.toUpperCase() === "[BOOKS]") { currentSection = "books"; return; }
-
+        
                 if (currentSection === "shelves") {
                     const parts = line.split(':');
                     if (parts.length >= 2) {
@@ -208,7 +208,7 @@
                     }
                 }
             });
-
+        
             gameConfig.shelves = newShelves;
             gameConfig.books = newBooks;
             initGame();
