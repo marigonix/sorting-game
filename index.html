@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -174,6 +174,136 @@
             document.getElementById('game-wrapper').style.display = 'flex';
             parseCustomText(inputText);
         }
+
+        function parseCustomText(text) {
+            const lines = text.split('\n');
+            let currentSection = "";
+            let newShelves = [];
+            let newBooks = [];
+            let bookCount = 1;
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line || line.startsWith('//')) return;
+
+                if (line.toUpperCase() === "[SHELVES]") { currentSection = "shelves"; return; }
+                if (line.toUpperCase() === "[BOOKS]") { currentSection = "books"; return; }
+
+                if (currentSection === "shelves") {
+                    const parts = line.split(':');
+                    if (parts.length >= 2) {
+                        newShelves.push({ id: parts[0].trim(), title: parts[1].trim() });
+                    }
+                } else if (currentSection === "books") {
+                    const parts = line.split('|');
+                    if (parts.length >= 2) {
+                        const imageUrl = parts[3] ? parts[3].trim() : "";
+                        newBooks.push({
+                            id: "b" + bookCount++,
+                            text: parts[0].trim(),
+                            shelf: parts[1].trim(),
+                            color: parts[2] ? parts[2].trim() : "#5c341d",
+                            image: imageUrl
+                        });
+                    }
+                }
+            });
+
+            gameConfig.shelves = newShelves;
+            gameConfig.books = newBooks;
+            initGame();
+        }
+
+        function initGame() {
+            const bookcase = document.getElementById('bookcase');
+            const bookPile = document.getElementById('book-pile');
+            bookcase.innerHTML = ""; bookPile.innerHTML = "";
+        
+            gameConfig.shelves.forEach(shelfData => {
+                const shelfContainer = document.createElement('div'); shelfContainer.className = 'shelf';
+                const shelfInterior = document.createElement('div'); shelfInterior.className = 'shelf-interior';
+                
+                const plaqueDiv = document.createElement('div'); plaqueDiv.className = 'plaque';
+                plaqueDiv.innerText = shelfData.title;
+
+                const dropZone = document.createElement('div'); dropZone.className = 'drop-zone';
+                dropZone.id = shelfData.id;
+                dropZone.setAttribute('ondragover', 'allowDrop(event)');
+                dropZone.setAttribute('ondrop', 'dropElement(event)');
+
+                shelfInterior.appendChild(plaqueDiv); shelfInterior.appendChild(dropZone);
+        
+                const shelfWood = document.createElement('div'); shelfWood.className = 'shelf-wood';
+
+                shelfContainer.appendChild(shelfInterior); shelfContainer.appendChild(shelfWood);
+                bookcase.appendChild(shelfContainer);
+            });
+
+            const shuffledBooks = [...gameConfig.books].sort(() => Math.random() - 0.5);
+            shuffledBooks.forEach(bookData => {
+                const bookDiv = document.createElement('div'); bookDiv.className = 'book';
+                bookDiv.id = bookData.id; 
+                bookDiv.innerText = bookData.text; 
+                bookDiv.setAttribute('draggable', 'true');
+                bookDiv.setAttribute('data-correct-shelf', bookData.shelf);
+                bookDiv.setAttribute('ondragstart', 'dragElement(event)');
+        
+                if (bookData.image) {
+                    bookDiv.style.backgroundImage = "url('" + bookData.image + "')";
+                } else {
+                    bookDiv.style.backgroundColor = bookData.color;
+                    bookDiv.style.color = "#fff1cc"; 
+                    bookDiv.style.writingMode = "vertical-rl";
+                    bookDiv.style.textTransform = "uppercase";
+                }
+        
+                bookPile.appendChild(bookDiv);
+            });
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); }
+        function dragElement(ev) { ev.dataTransfer.setData("text", ev.target.id); ev.target.classList.remove('correct', 'incorrect'); }
+
+        function dropElement(ev) {
+            ev.preventDefault(); 
+            const data = ev.dataTransfer.getData("text"); 
+            const draggedBook = document.getElementById(data);
+            let targetZone = ev.target;
+            if (!targetZone.classList.contains('drop-zone') && targetZone.id !== 'book-pile') {
+                targetZone = targetZone.closest('.drop-zone') || document.getElementById('book-pile');
+            }
+            targetZone.appendChild(draggedBook); 
+            draggedBook.classList.remove('correct', 'incorrect');
+        }
+
+        function checkAnswers() {
+            document.querySelectorAll('.book').forEach(book => {
+                const currentShelf = book.parentElement.id; 
+                const correctShelf = book.getAttribute('data-correct-shelf');
+                if(book.parentElement.id === 'book-pile') { book.classList.remove('correct', 'incorrect'); return; }
+                if (currentShelf === correctShelf) { book.classList.add('correct'); book.classList.remove('incorrect'); }
+                else { book.classList.add('incorrect'); book.classList.remove('correct'); }
+            });
+        }
+
+        function resetGame() { initGame(); }
+
+        function copyGeneratedLink() {
+            const outputField = document.getElementById('link-output');
+            outputField.select();
+            outputField.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(outputField.value);
+    
+            const copyButton = document.getElementById('copy-btn');
+            copyButton.innerText = "✓ Copied!";
+            copyButton.style.backgroundColor = "#38b000";
+    
+            setTimeout(() => {
+                copyButton.innerText = "Copy Link";
+                copyButton.style.backgroundColor = "#2a9d8f";
+            }, 2000);
+        }
+
     </script>
     <script src="server.js"></script> 
 </body>
