@@ -226,20 +226,25 @@
                 
                 const plaqueDiv = document.createElement('div'); plaqueDiv.className = 'plaque';
                 plaqueDiv.innerText = shelfData.title;
-
+        
                 const dropZone = document.createElement('div'); dropZone.className = 'drop-zone';
                 dropZone.id = shelfData.id;
                 dropZone.setAttribute('ondragover', 'allowDrop(event)');
                 dropZone.setAttribute('ondrop', 'dropElement(event)');
-
-                shelfInterior.appendChild(plaqueDiv); shelfInterior.appendChild(dropZone);
         
+                const endMarker = document.createElement('div');
+                endMarker.className = 'shelf-end-marker';
+                dropZone.appendChild(endMarker);
+        
+                shelfInterior.appendChild(plaqueDiv); 
+                shelfInterior.appendChild(dropZone);
+                
                 const shelfWood = document.createElement('div'); shelfWood.className = 'shelf-wood';
-
+        
                 shelfContainer.appendChild(shelfInterior); shelfContainer.appendChild(shelfWood);
                 bookcase.appendChild(shelfContainer);
             });
-
+        
             const shuffledBooks = [...gameConfig.books].sort(() => Math.random() - 0.5);
             shuffledBooks.forEach(bookData => {
                 const bookDiv = document.createElement('div'); bookDiv.className = 'book';
@@ -248,7 +253,7 @@
                 bookDiv.setAttribute('draggable', 'true');
                 bookDiv.setAttribute('data-correct-shelf', bookData.shelf);
                 bookDiv.setAttribute('ondragstart', 'dragElement(event)');
-        
+                
                 if (bookData.image) {
                     bookDiv.style.backgroundImage = "url('" + bookData.image + "')";
                 } else {
@@ -257,10 +262,10 @@
                     bookDiv.style.writingMode = "vertical-rl";
                     bookDiv.style.textTransform = "uppercase";
                 }
-        
                 bookPile.appendChild(bookDiv);
             });
         }
+
 
         function allowDrop(ev) { ev.preventDefault(); }
         function dragElement(ev) { ev.dataTransfer.setData("text", ev.target.id); ev.target.classList.remove('correct', 'incorrect'); }
@@ -275,18 +280,25 @@
                 targetZone = targetZone.closest('.drop-zone') || document.getElementById('book-pile');
             }
         
-            targetZone.appendChild(draggedBook); 
+            const marker = targetZone.querySelector('.shelf-end-marker');
+            if (marker) {
+                targetZone.insertBefore(draggedBook, marker);
+            } else {
+                targetZone.appendChild(draggedBook);
+            }
+            
             draggedBook.classList.remove('correct', 'incorrect');
         
             if (targetZone.id !== 'book-pile') {
-                        const parentShelf = targetZone.closest('.shelf');
-                const booksInRow = targetZone.querySelectorAll('.book');
+                const parentShelf = targetZone.closest('.shelf');
+                const books = targetZone.querySelectorAll('.book');
                 
-                if (booksInRow.length > 1) {
-                    const firstBookTop = booksInRow[0].offsetTop;
-                    const lastBookTop = booksInRow[booksInRow.length - 1].offsetTop;
-                    
-                    if (lastBookTop > firstBookTop && !parentShelf.hasAttribute('data-has-extended')) {
+                if (books.length > 0 && marker) {
+                    const lastBookLeft = books[books.length - 1].offsetLeft;
+                    const lastBookWidth = books[books.length - 1].offsetWidth;
+                    const markerLeft = marker.offsetLeft;
+        
+                    if ((lastBookLeft + lastBookWidth) >= (markerLeft - 20) && !parentShelf.hasAttribute('data-has-extended')) {
                         parentShelf.setAttribute('data-has-extended', 'true');
                         
                         const extensionShelf = document.createElement('div'); 
@@ -304,6 +316,10 @@
                         
                         const isMobile = window.matchMedia("(max-width: 600px)").matches;
                         newDropZone.style.paddingLeft = isMobile ? "15px" : "20px"; 
+        
+                        const newMarker = document.createElement('div');
+                        newMarker.className = 'shelf-end-marker';
+                        newDropZone.appendChild(newMarker);
                 
                         shelfInterior.appendChild(newDropZone);
                         const shelfWood = document.createElement('div'); 
@@ -315,6 +331,7 @@
                 }
             }
         }
+
 
 
         function checkAnswers() {
