@@ -280,12 +280,11 @@
         
             if (targetZone.id !== 'book-pile') {
                 const parentShelf = targetZone.closest('.shelf');
-                const totalShelfWidth = targetZone.clientWidth;
-                const bookCountInThisRow = targetZone.children.length;
-                const totalBookSpaceUsed = bookCountInThisRow * 90;
-                const plaqueBufferSpace = targetZone.closest('.extension-shelf') ? 0 : 140;
+                const booksInThisRow = targetZone.children.length;
+                const isChildRow = targetZone.closest('.extension-shelf') !== null;
+                const maxCapacity = isChildRow ? 5 : 3;
         
-                if (totalBookSpaceUsed >= (totalShelfWidth - plaqueBufferSpace - 95) && !parentShelf.hasAttribute('data-has-extended')) {
+                if (booksInThisRow >= maxCapacity && !parentShelf.hasAttribute('data-has-extended')) {
                     parentShelf.setAttribute('data-has-extended', 'true');
                     
                     const extensionShelf = document.createElement('div'); 
@@ -307,7 +306,7 @@
                     extensionShelf.appendChild(shelfInterior); 
                     extensionShelf.appendChild(shelfWood);
                     
-                    parentShelf.insertAdjacentElement('afterend', extensionShelf);           
+                    parentShelf.insertAdjacentElement('afterend', extensionShelf);       
                 }
             }
         }
