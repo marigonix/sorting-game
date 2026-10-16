@@ -64,9 +64,9 @@ p {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    align-items: flex-end !important;
     justify-content: flex-start !important;
-    gap: 15px !important;
+    align-items: flex-end !important;
+    box-sizing: border-box !important;
 }
 
 .shelf-end-marker {
