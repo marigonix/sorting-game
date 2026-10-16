@@ -340,25 +340,22 @@
 
 
         function checkAnswers() {
-            if (!dropZoneElement) return 4;
-            const bookcase = document.getElementById('bookcase');
-            const systemWidth = bookcase ? bookcase.clientWidth : 700;
-            const isMobile = window.matchMedia("(max-width: 600px)").matches;
-            
-            let bookWidth, itemGap;
-            if (isMobile) {
-                bookWidth = 70; 
-                itemGap = 10;   
-            } else {
-                bookWidth = 90; 
-                itemGap = 15; 
-            }
-            
-            const individualBookFootprint = bookWidth + itemGap;
-            const usableCabinetSpace = systemWidth - 40;
-            
-            const maxCapacity = Math.floor(usableCabinetSpace / individualBookFootprint);
-            return maxCapacity > 2 ? maxCapacity : 4;
+            document.querySelectorAll('.book').forEach(book => {
+                const currentShelf = book.parentElement.id; 
+                const correctShelf = book.getAttribute('data-correct-shelf');
+                if (book.parentElement.id === 'book-pile') { 
+                    book.classList.remove('correct', 'incorrect'); 
+                    return; 
+                }
+        
+                if (currentShelf === correctShelf) { 
+                    book.classList.add('correct'); 
+                    book.classList.remove('incorrect'); 
+                } else { 
+                    book.classList.add('incorrect'); 
+                    book.classList.remove('correct'); 
+                }
+            });
         }
 
         function resetGame() { initGame(); }
