@@ -176,7 +176,6 @@
         }
 
         function parseCustomText(text) {
-            if (!dropZoneElement) return 4;
             const lines = text.split('\n');
             let currentSection = "";
             let newShelves = [];
@@ -216,31 +215,28 @@
         }
 
         function calculateMaxBooksPerRow(dropZoneElement) {
-            const bookcase = document.getElementById('bookcase');
-            const systemWidth = bookcase ? bookcase.clientWidth : 700;
+            const bookcaseElement = document.getElementById('bookcase');
+            const totalCabinetWidth = bookcaseElement ? bookcaseElement.clientWidth : 600;
             const isMobile = window.matchMedia("(max-width: 600px)").matches;
             
-            let bookWidth, itemGap;
+            let bookWidth, layoutGap, wallBuffer;
             if (isMobile) {
                 bookWidth = 70;
-                itemGap = 10;
+                layoutGap = 10;
+                wallBuffer = 30;
             } else {
                 bookWidth = 90;
-                itemGap = 15;
-            }
-            
-            const individualBookFootprint = bookWidth + itemGap;
-            const usableCabinetSpace = systemWidth - 40;
-            
-            const maxCapacity = Math.floor(usableCabinetSpace / individualBookFootprint);
-            return maxCapacity > 2 ? maxCapacity : 4;
-            }
-            
-            const individualBookFootprint = bookWidth + layoutGap;
-            const trueUsableSpace = totalCabinetWidth - wallBuffer;
-            const calculatedMax = Math.floor(trueUsableSpace / individualBookFootprint);
-            
-            return calculatedMax > 2 ? calculatedMax : 4;
+                layoutGap = 15;
+                wallBuffer = 40;
+    }
+    
+    const individualBookFootprint = bookWidth + layoutGap;
+    const trueUsableSpace = totalCabinetWidth - wallBuffer;
+    
+    // 3. Find the exact mathematical total that can physically fit inside the shelf framing width
+    const calculatedMax = Math.floor(trueUsableSpace / individualBookFootprint);
+    
+    return calculatedMax > 2 ? calculatedMax : 4;
         }
 
         function initGame() {
@@ -344,22 +340,25 @@
 
 
         function checkAnswers() {
-            document.querySelectorAll('.book').forEach(book => {
-                const currentShelf = book.parentElement.id; 
-                const correctShelf = book.getAttribute('data-correct-shelf');
-                if (book.parentElement.id === 'book-pile') { 
-                    book.classList.remove('correct', 'incorrect'); 
-                    return; 
-                }
-        
-                if (currentShelf === correctShelf) { 
-                    book.classList.add('correct'); 
-                    book.classList.remove('incorrect'); 
-                } else { 
-                    book.classList.add('incorrect'); 
-                    book.classList.remove('correct'); 
-                }
-            });
+            if (!dropZoneElement) return 4;
+            const bookcase = document.getElementById('bookcase');
+            const systemWidth = bookcase ? bookcase.clientWidth : 700;
+            const isMobile = window.matchMedia("(max-width: 600px)").matches;
+            
+            let bookWidth, itemGap;
+            if (isMobile) {
+                bookWidth = 70; 
+                itemGap = 10;   
+            } else {
+                bookWidth = 90; 
+                itemGap = 15; 
+            }
+            
+            const individualBookFootprint = bookWidth + itemGap;
+            const usableCabinetSpace = systemWidth - 40;
+            
+            const maxCapacity = Math.floor(usableCabinetSpace / individualBookFootprint);
+            return maxCapacity > 2 ? maxCapacity : 4;
         }
 
         function resetGame() { initGame(); }
