@@ -280,11 +280,15 @@
 
             if (targetZone.id !== 'book-pile') {
                 const parentShelf = targetZone.closest('.shelf');
-                const currentBookCount = targetZone.querySelectorAll('.book').length;
+                let totalBookWidth = 0;
+                Array.from(targetZone.children).forEach(book => {
+                    totalBookWidth += book.getBoundingClientRect().width + 10;
+                });
+                const availableWidth = targetZone.getBoundingClientRect().width;
 
-                if (currentBookCount >= 3 && !parentShelf.hasAttribute('data-has-extended')) {
+                if (totalBookWidth >= (availableWidth - 90) && !parentShelf.hasAttribute('data-has-extended')) {
                     parentShelf.setAttribute('data-has-extended', 'true');
-                    
+            
                     const extensionShelf = document.createElement('div'); 
                     extensionShelf.className = 'shelf extension-shelf';
             
@@ -296,8 +300,14 @@
                     newDropZone.id = targetZone.id;
                     newDropZone.setAttribute('ondragover', 'allowDrop(event)');
                     newDropZone.setAttribute('ondrop', 'dropElement(event)');
-            
-                    newDropZone.style.paddingLeft = "160px"; 
+                    newDropZone.style.display = "flex";
+                    newDropZone.style.flexDirection = "row";
+                    newDropZone.style.flexWrap = "nowrap";
+                    newDropZone.style.justifyContent = "flex-start";
+                    newDropZone.style.alignItems = "flex-end";
+                    newDropZone.style.paddingLeft = "20px";
+                    newDropZone.style.width = "100%";
+                    newDropZone.style.height = "100%";
             
                     shelfInterior.appendChild(newDropZone);
                     const shelfWood = document.createElement('div'); 
