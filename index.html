@@ -176,6 +176,7 @@
         }
 
         function parseCustomText(text) {
+            if (!dropZoneElement) return 4;
             const lines = text.split('\n');
             let currentSection = "";
             let newShelves = [];
@@ -215,28 +216,31 @@
         }
 
         function calculateMaxBooksPerRow(dropZoneElement) {
-            const bookcaseElement = document.getElementById('bookcase');
-            const totalCabinetWidth = bookcaseElement ? bookcaseElement.clientWidth : 600;
+            const bookcase = document.getElementById('bookcase');
+            const systemWidth = bookcase ? bookcase.clientWidth : 700;
             const isMobile = window.matchMedia("(max-width: 600px)").matches;
             
-            let bookWidth, layoutGap, wallBuffer;
+            let bookWidth, itemGap;
             if (isMobile) {
                 bookWidth = 70;
-                layoutGap = 10;
-                wallBuffer = 30;
+                itemGap = 10;
             } else {
                 bookWidth = 90;
-                layoutGap = 15;
-                wallBuffer = 40;
-    }
-    
-    const individualBookFootprint = bookWidth + layoutGap;
-    const trueUsableSpace = totalCabinetWidth - wallBuffer;
-    
-    // 3. Find the exact mathematical total that can physically fit inside the shelf framing width
-    const calculatedMax = Math.floor(trueUsableSpace / individualBookFootprint);
-    
-    return calculatedMax > 2 ? calculatedMax : 4;
+                itemGap = 15;
+            }
+            
+            const individualBookFootprint = bookWidth + itemGap;
+            const usableCabinetSpace = systemWidth - 40;
+            
+            const maxCapacity = Math.floor(usableCabinetSpace / individualBookFootprint);
+            return maxCapacity > 2 ? maxCapacity : 4;
+            }
+            
+            const individualBookFootprint = bookWidth + layoutGap;
+            const trueUsableSpace = totalCabinetWidth - wallBuffer;
+            const calculatedMax = Math.floor(trueUsableSpace / individualBookFootprint);
+            
+            return calculatedMax > 2 ? calculatedMax : 4;
         }
 
         function initGame() {
