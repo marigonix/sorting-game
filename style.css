@@ -60,14 +60,13 @@ p {
 }
 
 .shelf-interior .drop-zone {
+    padding-left: 20px !important;
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: flex-end !important;
     justify-content: flex-start !important;
-    width: 100% !important;
-    height: 100% !important;
-    box-sizing: border-box !important;
+    gap: 15px !important;
 }
 
 .shelf-end-marker {
@@ -114,10 +113,11 @@ p {
     flex-shrink: 0;
     box-shadow: 3px 4px 8px rgba(0,0,0,0.4);
     
-    position: absolute;
-    top: 12px;  
-    left: 20px; 
-    z-index: 5;
+    position: absolute !important;
+    top: 12px !important;
+    left: 20px !important;
+    z-index: 10 !important;
+    pointer-events: none !important;
 }
 
 .plaque::before, .plaque::after {
