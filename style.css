@@ -71,6 +71,16 @@ p {
     box-sizing: border-box;
 }
 
+.extension-shelf .shelf-interior .drop-zone {
+    padding-left: 0px !important;
+    margin-left: 0px !important;
+    justify-content: flex-start !important;
+}
+
+.extension-shelf .shelf-interior {
+    padding-left: 0px !important;
+}
+
 .shelf-wood {
     height: 24px;
     background-color: #1e0f08;
