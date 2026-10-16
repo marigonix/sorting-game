@@ -270,20 +270,36 @@
             const data = ev.dataTransfer.getData("text"); 
             const draggedBook = document.getElementById(data);
             let targetZone = ev.target;
-    
+        
             if (!targetZone.classList.contains('drop-zone') && targetZone.id !== 'book-pile') {
                 targetZone = targetZone.closest('.drop-zone') || document.getElementById('book-pile');
             }
-    
+        
             targetZone.appendChild(draggedBook); 
             draggedBook.classList.remove('correct', 'incorrect');
-
-            if (targetZone.id !== 'book-pile') {
-                const MAX_BOOKS_PER_ROW = 4; 
-                const currentBookCount = targetZone.querySelectorAll('.book').length;
-                const parentShelf = targetZone.closest('.shelf');
         
-                if (currentBookCount >= MAX_BOOKS_PER_ROW && !parentShelf.hasAttribute('data-has-extended')) {
+            if (targetZone.id !== 'book-pile') {
+                const parentShelf = targetZone.closest('.shelf');
+                const isExtension = parentShelf.classList.contains('extension-shelf');
+                const totalShelfWidth = targetZone.clientWidth;
+                const isMobile = window.matchMedia("(max-width: 600px)").matches;
+                
+                let bookFootprint;
+                let plaquePaddingBuffer;
+                
+                if (isMobile) {
+                    bookFootprint = 80; 
+                    plaquePaddingBuffer = isExtension ? 15 : 80;
+                } else {
+                    bookFootprint = 105;
+                    plaquePaddingBuffer = isExtension ? 20 : 150;
+                }
+                
+                const spaceForBooks = totalShelfWidth - plaquePaddingBuffer;
+                const maxBooksForThisDisplay = Math.floor(spaceForBooks / bookFootprint);
+                const currentBookCount = targetZone.querySelectorAll('.book').length;
+                
+                if (currentBookCount >= maxBooksForThisDisplay && !parentShelf.hasAttribute('data-has-extended')) {
                     parentShelf.setAttribute('data-has-extended', 'true');
                     const extensionShelf = document.createElement('div'); 
                     extensionShelf.className = 'shelf extension-shelf';
@@ -297,7 +313,7 @@
                     newDropZone.id = targetZone.id;
                     newDropZone.setAttribute('ondragover', 'allowDrop(event)');
                     newDropZone.setAttribute('ondrop', 'dropElement(event)');
-                    newDropZone.style.paddingLeft = "20px"; 
+                    newDropZone.style.paddingLeft = isMobile ? "15px" : "20px"; 
             
                     shelfInterior.appendChild(newDropZone);
                     const shelfWood = document.createElement('div'); 
